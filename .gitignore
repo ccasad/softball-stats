@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.pair
+.env.prod
 
 # Node modules
 node_modules/

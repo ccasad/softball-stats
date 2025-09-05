@@ -6,7 +6,6 @@ import Games from "./pages/Games.vue";
 import Stats from "./pages/Stats.vue";
 import PlayerDetail from "./pages/PlayerDetail.vue";
 import GameDetail from "./pages/GameDetail.vue";
-import Team from "./pages/Team.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -18,6 +17,5 @@ export const router = createRouter({
     { path: "/games", component: Games },
     { path: "/games/:id", component: GameDetail },
     { path: "/stats", component: Stats },
-    { path: "/team", component: Team },
   ],
 });

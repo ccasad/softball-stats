@@ -33,13 +33,6 @@
             Stats
           </RouterLink>
           <RouterLink 
-            class="hover:underline" 
-            :class="{ 'underline': isActiveRoute('/team') }"
-            to="/team"
-          >
-            Team
-          </RouterLink>
-          <RouterLink 
             v-if="!authed"
             class="hover:underline" 
             :class="{ 'underline': isActiveRoute('/login') }"
@@ -52,7 +45,7 @@
       </div>
     </header>
 
-    <main class="mx-auto px-4 py-6" :class="{ 'max-w-3xl': !isPlayersPage }">
+    <main class="mx-auto px-4 py-6">
       <RouterView />
     </main>
 
@@ -77,7 +70,6 @@ const authed = computed(() => !!token.value);
 const teamName = import.meta.env.VITE_TEAM_NAME || "Unknown Team";
 
 const isActiveRoute = (path: string) => route.path === path;
-const isPlayersPage = computed(() => route.path === '/players');
 
 function logout(){ 
   setToken("");

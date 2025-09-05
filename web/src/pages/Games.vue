@@ -27,18 +27,57 @@
     <div class="text-sm text-slate-500" v-if="loading">Loading…</div>
     <div class="text-sm text-red-600" v-if="err">{{ err }}</div>
 
-    <div class="rounded-2xl border bg-white p-2 shadow-sm divide-y">
-      <div v-for="g in games" :key="g.id" class="flex items-center justify-between p-3">
-        <div class="text-sm">
-          <RouterLink class="font-medium hover:underline" :to="`/games/${g.id}`">
-            {{ g.date }} vs {{ g.opponent }} 
-          </RouterLink>
-          <div class="text-slate-500">{{ g.location || '—' }}</div>
-          <span v-if="g.time" class="text-slate-500">{{ g.time }}</span>
-          <div v-if="g.score_ours != null && g.score_opponent != null" class="text-sm" :class="{'font-semibold text-green-600': g.score_ours > g.score_opponent, 'font-semibold text-red-600': g.score_ours < g.score_opponent}">
-            {{ g.score_ours }}:{{ g.score_opponent }}
-          </div>
-        </div>
+    <div class="rounded-2xl border bg-white shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[800px]">
+          <thead>
+            <tr class="border-b bg-slate-50">
+              <th class="text-left py-3 px-4 cursor-pointer hover:bg-slate-100" @click="sortBy('date')">
+                Date
+                <span v-if="sortField === 'date'" class="ml-1">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-left py-3 px-4 cursor-pointer hover:bg-slate-100" @click="sortBy('opponent')">
+                Opponent
+                <span v-if="sortField === 'opponent'" class="ml-1">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-center py-3 px-4 cursor-pointer hover:bg-slate-50" @click="sortBy('location')">
+                Location
+                <span v-if="sortField === 'location'" class="ml-1">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-center py-3 px-4 cursor-pointer hover:bg-slate-50" @click="sortBy('time')">
+                Time
+                <span v-if="sortField === 'time'" class="ml-1">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+              <th class="text-center py-3 px-4 cursor-pointer hover:bg-slate-50" @click="sortBy('score_ours')">
+                Score
+                <span v-if="sortField === 'score_ours'" class="ml-1">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="g in sortedGames" :key="g.id" class="border-b hover:bg-slate-50">
+              <td class="py-3 px-4">
+                <RouterLink class="font-medium hover:underline" :to="`/games/${g.id}`">
+                  {{ g.date }}
+                </RouterLink>
+              </td>
+              <td class="py-3 px-4">
+                <RouterLink class="font-medium hover:underline" :to="`/games/${g.id}`">
+                  {{ g.opponent }}
+                </RouterLink>
+              </td>
+              <td class="text-center py-3 px-4">{{ g.location || '—' }}</td>
+              <td class="text-center py-3 px-4">{{ g.time || '—' }}</td>
+              <td class="text-center py-3 px-4">
+                <div v-if="g.score_ours != null && g.score_opponent != null" 
+                     :class="{'font-semibold text-green-600': g.score_ours > g.score_opponent, 'font-semibold text-red-600': g.score_ours < g.score_opponent}">
+                  {{ g.score_ours }} - {{ g.score_opponent }}
+                </div>
+                <div v-else class="text-slate-400">—</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -49,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { listGamesQ, createGame, type Game } from "../api";
 import { isAuthed } from "../api";
 
@@ -59,6 +98,49 @@ const opponent = ref(""); const date = ref(""); const time = ref(""); const loca
 const qOpponent = ref(""); const dateFrom = ref(""); const dateTo = ref("");
 const loading = ref(false); const err = ref("");
 const showAdd = ref(false);
+
+// Sorting state
+const sortField = ref<'date' | 'opponent' | 'location' | 'time' | 'score_ours'>('date');
+const sortDirection = ref<'asc' | 'desc'>('desc'); // Default to newest first
+
+// Computed property for sorted games
+const sortedGames = computed(() => {
+  const sorted = [...games.value];
+  
+  sorted.sort((a, b) => {
+    let aVal: any, bVal: any;
+    
+    if (sortField.value === 'date') {
+      aVal = new Date(a.date);
+      bVal = new Date(b.date);
+    } else if (sortField.value === 'score_ours') {
+      // For score sorting, use our score as primary, opponent as secondary
+      aVal = a.score_ours ?? 0;
+      bVal = b.score_ours ?? 0;
+    } else {
+      aVal = a[sortField.value] || '';
+      bVal = b[sortField.value] || '';
+    }
+    
+    if (aVal < bVal) return sortDirection.value === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection.value === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  return sorted;
+});
+
+// Sorting function
+function sortBy(field: typeof sortField.value) {
+  if (sortField.value === field) {
+    // Toggle direction if same field
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    // New field, default to ascending
+    sortField.value = field;
+    sortDirection.value = 'asc';
+  }
+}
 
 async function load() {
   loading.value = true; err.value = "";

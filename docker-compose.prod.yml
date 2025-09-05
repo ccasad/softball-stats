@@ -18,7 +18,9 @@ services:
     expose:
       - "8000"
     networks:
-      - web
+      web:
+        aliases:
+          - api
     restart: unless-stopped
 
   web:

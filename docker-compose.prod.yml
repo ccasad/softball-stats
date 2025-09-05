@@ -8,8 +8,6 @@ services:
     container_name: softball_api
     env_file: .env.prod
     environment:
-      DATABASE_URL: "mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST:-db}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE}"
-      ADMIN_TOKEN: ${ADMIN_TOKEN}
       API_CORS_ORIGINS: https://softball-stats.casad.net
     command: >
       sh -lc 'gunicorn app.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 2 --threads 4 --timeout 60'
